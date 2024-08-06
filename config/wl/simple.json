@@ -1,0 +1,26 @@
+{
+    "coder_type": "RS",
+    "ec_k": 2,
+    "worker_ips": [
+        "172.24.128.1",
+        "172.24.128.2",
+        "172.24.128.3",
+        "172.24.128.4",
+        "172.24.128.5",
+        "172.24.128.6",
+        "172.24.128.7"
+    ],
+    "local_ip": "172.24.128.1",
+    "workerThrd_num": 1,
+    "input_num": 100,
+    "encoder": "linear",
+    "decoder": "distill",
+    "decoder_model": "iRevNet16x64",
+    "dataset": "cifar10",
+    "model": "irevnet18",
+    "model_checkpoint": "/root/AsymCDC/model/checkpoint/train/cifar10/cifar10_new.pth",
+    "decoder_checkpoint": "/root/AsymCDC/model/checkpoint/distill/cifar10/cifar10_k2_decode_new.pth",
+    "fail_rate": 0.15,
+    "query_rate": 150,
+    "output_path":"./output.txt"
+}
