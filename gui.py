@@ -14,6 +14,7 @@ from functools import partial
 import sys, os
 import subprocess
 import json
+import lmq
 
 
 class Ui_Form(object):
@@ -656,6 +657,11 @@ class Ui_Form(object):
         self.tabWidget_4.setCurrentIndex(0)
         self.tabWidget_5.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
+# ----------------------------------- lmq -------------------------------------
+        self.pushButton_7.clicked.connect(self.run_lmq_exp1)
+        self.pushButton_8.clicked.connect(self.run_lmq_exp2)
+        self.pushButton_9.clicked.connect(self.run_lmq_exp3)
+# --------------------------------------- -------------------------------------
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
@@ -787,13 +793,13 @@ class Ui_Form(object):
 
 # ----------------------------------- lmq -------------------------------------
     def run_lmq_exp1(self):
-        pass
+        lmq.run_lmq_exp1(self)
     
     def run_lmq_exp2(self):
-        pass
+        lmq.run_lmq_exp2(self)
     
     def run_lmq_exp3(self):
-        pass
+        lmq.run_lmq_exp3(self)
 # -----------------------------------------------------------------------------
 
 # ----------------------------------- wdh -------------------------------------
