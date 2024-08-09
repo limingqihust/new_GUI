@@ -14,7 +14,97 @@ from functools import partial
 import sys, os
 import subprocess
 import json
-import lmq
+import time
+# import lmq
+
+root = "/home/lmq/MergeCDC"
+
+from PyQt5.QtCore import QThread,pyqtSignal
+import queue
+import threading
+class Worker(QThread):
+    result_signal = pyqtSignal(str)
+    finished = pyqtSignal()
+    def __init__(self, master_ip, master_user, master_passwd, cmd):
+        super().__init__()
+        self.master_ip = master_ip
+        self.master_user = master_user
+        self.master_passwd = master_passwd
+        self.cmd = cmd
+    def run(self):
+
+        print(f"[INFO] exec {self.cmd} start")
+        exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"{self.cmd}\""
+        # process = subprocess.Popen(exec_cmd, shell = True)  
+        os.system(exec_cmd + " &")
+        print(f"[INFO] exec {self.cmd} send")
+
+        while True:
+            time.sleep(10)
+            print(f"[INFO] {time.localtime()} check")
+            exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"cat /root/exp2/MergeCDC/result_flag.out\""
+            ret = subprocess.getstatusoutput(exec_cmd)
+            if ret[1] == "1":
+                print(f"[INFO] exec {exec_cmd} finish")
+                break
+            elif ret[1] != "0":
+                print(f"[ERROR] undefine flag: {ret[1]}")
+
+        exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"cat /root/exp2/MergeCDC/result.out\""
+        ret = subprocess.getstatusoutput(exec_cmd)
+        print(f"[INFO] exec result: {ret}")
+        self.result_signal.emit(ret[1])      
+        self.finished.emit()
+        self.quit()
+        print(f"[INFO] worker quit")
+
+        # try:
+        #     print(f"[INFO] exec {self.cmd} start")
+        #     exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"{self.cmd}\"" 
+        #     process = subprocess.Popen(exec_cmd, shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        #     def enqueue_output(pipe, q):
+        #         for line in iter(pipe.readline, b''):
+        #             q.put(line.decode('utf-8', errors='ignore'))
+        #         pipe.close()
+
+        #     stdout_queue = queue.Queue()
+        #     stderr_queue = queue.Queue()
+
+        #     stdout_thread = threading.Thread(target=enqueue_output, args=(process.stdout, stdout_queue))
+        #     stderr_thread = threading.Thread(target=enqueue_output, args=(process.stderr, stderr_queue))
+
+        #     stdout_thread.start()
+        #     stderr_thread.start()
+
+        #     while stdout_thread.is_alive() or stderr_thread.is_alive():
+        #         try:
+        #             stdout_line = stdout_queue.get_nowait()
+        #         except queue.Empty:
+        #             stdout_line = None
+        #         if stdout_line:
+        #             self.result_signal.emit(stdout_line.strip())
+
+        #         try:
+        #             stderr_line = stderr_queue.get_nowait()
+        #         except queue.Empty:
+        #             stderr_line = None
+        #         if stderr_line:
+        #             self.result_signal.emit(stderr_line.strip())
+
+        #     while not stdout_queue.empty():
+        #         self.result_signal.emit(stdout_queue.get().strip())
+        #     while not stderr_queue.empty():
+        #         self.result_signal.emit(stderr_queue.get().strip())
+
+        #     stdout_thread.join()
+        #     stderr_thread.join()
+
+        # except Exception as e:
+        #     self.result_signal.emit(str(e))
+        # finally:
+        #     self.finished.emit()
+        #     self.quit()
 
 
 class Ui_Form(object):
@@ -761,24 +851,35 @@ class Ui_Form(object):
         file_path, _ = QFileDialog.getOpenFileName(self.Form, "选择文件", "", "All Files (*)")
         lineEdit.setText(file_path)
         
-    def scp(self, master_ip, master_user, master_passwd, file):
+    def scp(self, master_ip, master_user, master_passwd, file, dst):
         if master_user == "root":
-            scp_cmd = "sshpass -p " + master_passwd + " scp " + file + " " + master_user + "@" + master_ip + ":/root/AsymCDC/clipper-asymcc/run/config/"
+            scp_cmd = "sshpass -p " + master_passwd + " scp " + file + " " + master_user + "@" + master_ip + ":" + dst
         else:
-            scp_cmd = "sshpass -p " + master_passwd + " scp " + file + " " + master_user + "@" + master_ip + ":/home/" + master_user + "/wl/AsymCDC/clipper-asymcc/run/config/"
-        
+            scp_cmd = "sshpass -p " + master_passwd + " scp " + file + " " + master_user + "@" + master_ip + ":" + dst
+    
         # print(scp_cmd)
         return subprocess.getstatusoutput(scp_cmd)
-    
+
     def exec(self, master_ip, master_user, master_passwd, cmd):
-        ssh_cmd = "sshpass -p " + master_passwd + " ssh -p 22 -l" + master_user + " -o StrictHostKeyChecking=no " + master_ip
-        return subprocess.getstatusoutput(ssh_cmd + cmd)
+        exec_cmd = f"sshpass -p {master_passwd} ssh {master_user}@{master_ip} \"{cmd}\""
+        return subprocess.getstatusoutput(exec_cmd)
+
     
     def add_escape(self, value):
         reserved_chars = r'''?&|!{}[]()^~*:\\"'+- '''
         replace = ['\\' + l for l in reserved_chars]
         trans = str.maketrans(dict(zip(reserved_chars, replace)))
         return value.translate(trans)
+    def cleanup_thread(self, worker):
+        print("[INFO] clean worker")
+        if worker:
+            worker.wait()  # Ensure the thread has finished before continuing
+        print("[INFO] clean worker done")
+
+    def display_result(self, output, textEdit):
+        textEdit.append(output)
+        QApplication.processEvents()
+        print("[INFO] display result done")
 # -----------------------------------------------------------------------------
 
 # ----------------------------------- xrq -------------------------------------
@@ -794,13 +895,74 @@ class Ui_Form(object):
 
 # ----------------------------------- lmq -------------------------------------
     def run_lmq_exp1(self):
-        lmq.run_lmq_exp1(self)
+        filename = self.lineEdit_25.text()
+        master_ip = self.lineEdit_26.text()
+        username = self.lineEdit_27.text()
+        passwd = self.lineEdit_28.text()
     
     def run_lmq_exp2(self):
-        lmq.run_lmq_exp2(self)
-    
+        # while True:
+        #     Ui_Form.exp2_text = Ui_Form.exp2_text + "hello world\n"
+        #     print(f"modify exp2_text: {Ui_Form.exp2_text}")
+        #     Ui_Form.textEdit_8.setText(Ui_Form.exp2_text)
+        #     QApplication.processEvents()
+        #     time.sleep(1)
+        # return
+        root = "/root/exp2/MergeCDC"
+        filename = self.lineEdit_29.text()
+        master_ip = self.lineEdit_30.text()
+        username = self.lineEdit_32.text()
+        passwd = self.lineEdit_31.text()
+        filename = "/home/lmq/new_GUI/config/lmq/exp2.json"
+        master_ip = "8.152.160.205"
+        username = "root"
+        passwd = "hycB509!"
+        with open(filename) as file:
+            conf = json.load(file)
+            distribution = conf["file_distribution"]
+            combination = conf["node_combination"]
+        # copy config file to master node
+        self.scp(master_ip, username, passwd, filename, f"{root}/config/")
+        self.scp(master_ip, username, passwd, distribution, f"{root}/Distribution/")
+        self.scp(master_ip, username, passwd, combination, f"{root}/Distribution/")
+        self.textEdit_8.append("[INFO] copy config file to master node done")
+        QApplication.processEvents()
+        print("[INFO] copy config file to master node done")
+        # clear old bandwidth config
+        ret = self.exec(master_ip, username, passwd, f"bash {root}/script/clear.sh")
+        self.textEdit_8.append("[INFO] clear old bandwidth config done")
+        QApplication.processEvents()
+        print("[INFO] clear old bandwidth config done")
+        # modify bandwidth config
+        ret = self.exec(master_ip, username, passwd, f"bash {root}/script/update.sh")
+        self.textEdit_8.append("[INFO] modify bandwidth config done")
+        QApplication.processEvents()
+        print("[INFO] modify bandwidth config done")
+
+        # run TeraSort and CodedTeraSort
+        self.textEdit_8.append("[INFO] run TeraSort and CodedTeraSort start")
+        QApplication.processEvents()
+        print("[INFO] run TeraSort and CodedTeraSort start")
+
+        worker = Worker(master_ip, username, passwd, f"bash {root}/script/run_1_terasort.sh")
+        # worker = Worker(master_ip, username, passwd, f"bash {root}/script/helloworld.sh")
+        worker.start()
+        worker.finished.connect(lambda: self.cleanup_thread(worker))
+        worker.result_signal.connect(lambda output: self.display_result(output, self.textEdit_8))
+
+        # ret = exec(master_ip, username, passwd, f"bash {root}/script/run_8.sh")
+        # Ui_Form.textEdit_8.append("[INFO] run TeraSort and CodedTeraSort done")
+        # QApplication.processEvents()
+        # print("[INFO] run TeraSort and CodedTeraSort done")
+        # Ui_Form.textEdit_8.append("[INFO] result:")
+        # Ui_Form.textEdit_8.append(ret[1])
+        # QApplication.processEvents()
+
     def run_lmq_exp3(self):
-        lmq.run_lmq_exp3(self)
+        filename = self.lineEdit_33.text()
+        master_ip = self.lineEdit_34.text()
+        username = self.lineEdit_35.text()
+        passwd = self.lineEdit_36.text()
 # -----------------------------------------------------------------------------
 
 # ----------------------------------- wdh -------------------------------------

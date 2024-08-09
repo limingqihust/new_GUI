@@ -5,6 +5,19 @@ import time
 from PyQt5.QtWidgets import QApplication
 root = "/home/lmq/MergeCDC"
 
+from PyQt5.QtCore import QThread
+class Worker(QThread):
+    def __init__(self, master_ip, master_user, master_passwd, cmd):
+        super().__init__()
+        self.master_ip = master_ip
+        self.master_user = master_user
+        self.master_passwd = master_passwd
+        self.cmd = cmd
+    def run(self):
+        ret = exec(self.master_ip, self.master_user, self.master_passwd, self.cmd)
+        print(ret)
+            
+
 def scp(master_ip, master_user, master_passwd, file, dst):
     if master_user == "root":
         scp_cmd = "sshpass -p " + master_passwd + " scp " + file + " " + master_user + "@" + master_ip + ":" + dst
@@ -64,12 +77,21 @@ def run_lmq_exp2(Ui_Form):
     print("[INFO] modify bandwidth config done")
 
     # run TeraSort and CodedTeraSort
-    # Ui_Form.textEdit_8.setText("[INFO] run TeraSort and CodedTeraSort start")
-    # print("[INFO] run TeraSort and CodedTeraSort start")
+    Ui_Form.textEdit_8.append("[INFO] run TeraSort and CodedTeraSort start")
+    QApplication.processEvents()
+    print("[INFO] run TeraSort and CodedTeraSort start")
+
+    thd = Worker(master_ip, username, passwd, f"bash {root}/script/run_1_terasort.sh")
+    thd.start()
+    print("[INFO] wait for TeraSort done")
+    thd.wait()
     # ret = exec(master_ip, username, passwd, f"bash {root}/script/run_8.sh")
-    # Ui_Form.textEdit_8.setText("[INFO] run TeraSort and CodedTeraSort done")
+    # Ui_Form.textEdit_8.append("[INFO] run TeraSort and CodedTeraSort done")
+    # QApplication.processEvents()
     # print("[INFO] run TeraSort and CodedTeraSort done")
-    # Ui_Form.textEdit_8.setText("[INFO] result:")
+    # Ui_Form.textEdit_8.append("[INFO] result:")
+    # Ui_Form.textEdit_8.append(ret[1])
+    # QApplication.processEvents()
 
 def run_lmq_exp3(Ui_Form):
     filename = Ui_Form.lineEdit_33.text()
