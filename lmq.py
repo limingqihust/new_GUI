@@ -1,7 +1,8 @@
 import gui
 import subprocess
 import json
-
+import time
+from PyQt5.QtWidgets import QApplication
 root = "/home/lmq/MergeCDC"
 
 def scp(master_ip, master_user, master_passwd, file, dst):
@@ -24,21 +25,51 @@ def run_lmq_exp1(Ui_Form):
     passwd = Ui_Form.lineEdit_28.text()
     
 def run_lmq_exp2(Ui_Form):
+    # while True:
+    #     Ui_Form.exp2_text = Ui_Form.exp2_text + "hello world\n"
+    #     print(f"modify exp2_text: {Ui_Form.exp2_text}")
+    #     Ui_Form.textEdit_8.setText(Ui_Form.exp2_text)
+    #     QApplication.processEvents()
+    #     time.sleep(1)
+    # return
+    root = "/root/exp2/MergeCDC"
     filename = Ui_Form.lineEdit_29.text()
     master_ip = Ui_Form.lineEdit_30.text()
     username = Ui_Form.lineEdit_32.text()
     passwd = Ui_Form.lineEdit_31.text()
-
+    filename = "/home/lmq/new_GUI/config/lmq/exp2.json"
+    master_ip = "8.152.160.205"
+    username = "root"
+    passwd = "hycB509!"
     with open(filename) as file:
         conf = json.load(file)
         distribution = conf["file_distribution"]
         combination = conf["node_combination"]
-
+    # copy config file to master node
     scp(master_ip, username, passwd, filename, f"{root}/config/")
     scp(master_ip, username, passwd, distribution, f"{root}/Distribution/")
     scp(master_ip, username, passwd, combination, f"{root}/Distribution/")
-    ret = exec(master_ip, username, passwd, f"mpirun -np 32 --oversubscribe {root}/CodedTeraSort")
-    Ui_Form.textEdit_8.append(ret[1])
+    Ui_Form.textEdit_8.append("[INFO] copy config file to master node done")
+    QApplication.processEvents()
+    print("[INFO] copy config file to master node done")
+    # clear old bandwidth config
+    ret = exec(master_ip, username, passwd, f"bash {root}/script/clear.sh")
+    Ui_Form.textEdit_8.append("[INFO] clear old bandwidth config done")
+    QApplication.processEvents()
+    print("[INFO] clear old bandwidth config done")
+    # modify bandwidth config
+    ret = exec(master_ip, username, passwd, f"bash {root}/script/update.sh")
+    Ui_Form.textEdit_8.append("[INFO] modify bandwidth config done")
+    QApplication.processEvents()
+    print("[INFO] modify bandwidth config done")
+
+    # run TeraSort and CodedTeraSort
+    # Ui_Form.textEdit_8.setText("[INFO] run TeraSort and CodedTeraSort start")
+    # print("[INFO] run TeraSort and CodedTeraSort start")
+    # ret = exec(master_ip, username, passwd, f"bash {root}/script/run_8.sh")
+    # Ui_Form.textEdit_8.setText("[INFO] run TeraSort and CodedTeraSort done")
+    # print("[INFO] run TeraSort and CodedTeraSort done")
+    # Ui_Form.textEdit_8.setText("[INFO] result:")
 
 def run_lmq_exp3(Ui_Form):
     filename = Ui_Form.lineEdit_33.text()

@@ -661,6 +661,7 @@ class Ui_Form(object):
         self.pushButton_7.clicked.connect(self.run_lmq_exp1)
         self.pushButton_8.clicked.connect(self.run_lmq_exp2)
         self.pushButton_9.clicked.connect(self.run_lmq_exp3)
+        self.exp2_text = ""
 # --------------------------------------- -------------------------------------
 
     def retranslateUi(self, Form):
