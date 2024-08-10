@@ -897,10 +897,43 @@ class Ui_Form(object):
 
 # ----------------------------------- lmq -------------------------------------
     def run_lmq_exp1(self):
-        filename = self.lineEdit_25.text()
-        master_ip = self.lineEdit_26.text()
-        username = self.lineEdit_27.text()
-        passwd = self.lineEdit_28.text()
+        root = "/root/MergeCDC"
+        filename = "/home/lmq/new_GUI/config/lmq/exp2.json"
+        master_ip = "8.152.160.205"
+        username = "root"
+        passwd = "hycB509!"
+        with open(filename) as file:
+            conf = json.load(file)
+            distribution = conf["file_distribution"]
+            combination = conf["node_combination"]
+        
+        # copy config file to master node
+        self.scp(master_ip, username, passwd, filename, f"{root}/config/")
+        self.scp(master_ip, username, passwd, distribution, f"{root}/Distribution/")
+        self.scp(master_ip, username, passwd, combination, f"{root}/Distribution/")
+        self.textEdit_7.append("[INFO] copy config file to master node done")
+        QApplication.processEvents()
+        print("[INFO] copy config file to master node done")
+        # clear old bandwidth config
+        ret = self.exec(master_ip, username, passwd, f"bash {root}/script/clear.sh")
+        self.textEdit_7.append("[INFO] clear old bandwidth config done")
+        QApplication.processEvents()
+        print("[INFO] clear old bandwidth config done")
+        # modify bandwidth config
+        ret = self.exec(master_ip, username, passwd, f"bash {root}/script/update.sh")
+        self.textEdit_7.append("[INFO] modify bandwidth config done")
+        QApplication.processEvents()
+        print("[INFO] modify bandwidth config done")
+
+        # run TeraSort and CodedTeraSort
+        self.textEdit_7.append("[INFO] run TeraSort and CodedTeraSort start")
+        QApplication.processEvents()
+        print("[INFO] run TeraSort and CodedTeraSort start")
+
+        worker = Worker(master_ip, username, passwd, f"bash {root}/script/run_1_terasort.sh")
+        worker.start()
+        worker.finished.connect(lambda: self.cleanup_thread(worker))
+        worker.result_signal.connect(lambda output: self.display_result(output, self.textEdit_7))
     
     def run_lmq_exp2(self):
         # while True:
@@ -947,7 +980,7 @@ class Ui_Form(object):
         print("[INFO] run TeraSort and CodedTeraSort start")
 
         # worker = Worker(master_ip, username, passwd, f"bash {root}/script/run_1_terasort.sh")
-        worker = Worker(master_ip, username, passwd, f"bash {root}/script/run_8_terasort.sh")
+        # worker = Worker(master_ip, username, passwd, f"bash {root}/script/run_8_terasort.sh")
         worker = Worker(master_ip, username, passwd, f"bash {root}/script/run_8_codedterasort.sh")
         # worker = Worker(master_ip, username, passwd, f"bash {root}/script/helloworld.sh")
         worker.start()
