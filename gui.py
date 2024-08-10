@@ -33,80 +33,65 @@ class Worker(QThread):
         self.cmd = cmd
     def run(self):
 
-        print(f"[INFO] exec {self.cmd} start")
-        # exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"{self.cmd}\""
-        # process = subprocess.Popen(exec_cmd, shell = True)
-        exec_cmd = f"ssh {self.master_user}@{self.master_ip} \"{self.cmd}\""  
-        ret = subprocess.getstatusoutput(exec_cmd)
-        # os.system(exec_cmd + " &")
-        print(f"[INFO] exec {self.cmd} send")
-
-        # while True:
-        #     time.sleep(10)
-        #     print(f"[INFO] {time.localtime()} check")
-        #     exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"cat /root/exp2/MergeCDC/result_flag.out\""
-        #     ret = subprocess.getstatusoutput(exec_cmd)
-        #     if ret[1] == "1":
-        #         print(f"[INFO] exec {exec_cmd} finish")
-        #         break
-        #     elif ret[1] != "0":
-        #         print(f"[ERROR] undefine flag: {ret[1]}")
-
-        # exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"cat /root/exp2/MergeCDC/result.out\""
+        # print(f"[INFO] exec {self.cmd} start")
+        # exec_cmd = f"ssh {self.master_user}@{self.master_ip} \"{self.cmd}\""  
         # ret = subprocess.getstatusoutput(exec_cmd)
-        print(f"[INFO] exec result: {ret}")
-        self.result_signal.emit(ret[1])      
-        self.finished.emit()
-        self.quit()
-        print(f"[INFO] worker quit")
+        # print(f"[INFO] exec {self.cmd} send")
 
-        # try:
-        #     print(f"[INFO] exec {self.cmd} start")
-        #     exec_cmd = f"ssh {self.master_user}@{self.master_ip} \"{self.cmd}\"" 
-        #     process = subprocess.Popen(exec_cmd, shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # print(f"[INFO] exec result: {ret}")
+        # self.result_signal.emit(ret[1])      
+        # self.finished.emit()
+        # self.quit()
+        # print(f"[INFO] worker quit")
 
-        #     def enqueue_output(pipe, q):
-        #         for line in iter(pipe.readline, b''):
-        #             q.put(line.decode('utf-8', errors='ignore'))
-        #         pipe.close()
+        try:
+            print(f"[INFO] exec {self.cmd} start")
+            exec_cmd = f"ssh {self.master_user}@{self.master_ip} \"{self.cmd}\""  
+            process = subprocess.Popen(exec_cmd, shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print(f"[INFO] exec {self.cmd} send")
+            def enqueue_output(pipe, q):
+                for line in iter(pipe.readline, b''):
+                    q.put(line.decode('utf-8', errors='ignore'))
+                pipe.close()
 
-        #     stdout_queue = queue.Queue()
-        #     stderr_queue = queue.Queue()
+            stdout_queue = queue.Queue()
+            stderr_queue = queue.Queue()
 
-        #     stdout_thread = threading.Thread(target=enqueue_output, args=(process.stdout, stdout_queue))
-        #     stderr_thread = threading.Thread(target=enqueue_output, args=(process.stderr, stderr_queue))
+            stdout_thread = threading.Thread(target=enqueue_output, args=(process.stdout, stdout_queue))
+            stderr_thread = threading.Thread(target=enqueue_output, args=(process.stderr, stderr_queue))
 
-        #     stdout_thread.start()
-        #     stderr_thread.start()
+            stdout_thread.start()
+            stderr_thread.start()
 
-        #     while stdout_thread.is_alive() or stderr_thread.is_alive():
-        #         try:
-        #             stdout_line = stdout_queue.get_nowait()
-        #         except queue.Empty:
-        #             stdout_line = None
-        #         if stdout_line:
-        #             self.result_signal.emit(stdout_line.strip())
+            while stdout_thread.is_alive() or stderr_thread.is_alive():
+                try:
+                    stdout_line = stdout_queue.get_nowait()
+                except queue.Empty:
+                    stdout_line = None
+                if stdout_line:
+                    self.result_signal.emit(stdout_line.strip())
 
-        #         try:
-        #             stderr_line = stderr_queue.get_nowait()
-        #         except queue.Empty:
-        #             stderr_line = None
-        #         if stderr_line:
-        #             self.result_signal.emit(stderr_line.strip())
+                try:
+                    stderr_line = stderr_queue.get_nowait()
+                except queue.Empty:
+                    stderr_line = None
+                if stderr_line:
+                    self.result_signal.emit(stderr_line.strip())
 
-        #     while not stdout_queue.empty():
-        #         self.result_signal.emit(stdout_queue.get().strip())
-        #     while not stderr_queue.empty():
-        #         self.result_signal.emit(stderr_queue.get().strip())
+            while not stdout_queue.empty():
+                self.result_signal.emit(stdout_queue.get().strip())
+            while not stderr_queue.empty():
+                self.result_signal.emit(stderr_queue.get().strip())
 
-        #     stdout_thread.join()
-        #     stderr_thread.join()
+            stdout_thread.join()
+            stderr_thread.join()
 
-        # except Exception as e:
-        #     self.result_signal.emit(str(e))
-        # finally:
-        #     self.finished.emit()
-        #     self.quit()
+        except Exception as e:
+            self.result_signal.emit(str(e))
+        finally:
+            print(f"[INFO] worker quit")
+            self.finished.emit()
+            self.quit()
 
 
 class Ui_Form(object):
