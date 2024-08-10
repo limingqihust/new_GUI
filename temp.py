@@ -8,12 +8,7 @@ username = "root"
 passwd = "hycB509!"
 cmd = "bash /root/exp2/MergeCDC/script/helloworld.sh"
 print(f" exec {cmd} start")
-exec_cmd = f"sshpass -p {passwd} ssh {username}@{master_ip} \"{cmd}\"" 
-os.system(exec_cmd)
-print(f" exec {exec_cmd} end")
-
-
-cmd = "cat /root/exp2/MergeCDC/result.out"
-exec_cmd = f"sshpass -p {passwd} ssh {username}@{master_ip} \"{cmd}\"" 
+exec_cmd = f" ssh {username}@{master_ip} \"{cmd}\"" 
 ret = subprocess.getstatusoutput(exec_cmd)
+print(f" exec {exec_cmd} end")
 print(ret)

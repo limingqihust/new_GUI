@@ -34,24 +34,26 @@ class Worker(QThread):
     def run(self):
 
         print(f"[INFO] exec {self.cmd} start")
-        exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"{self.cmd}\""
-        # process = subprocess.Popen(exec_cmd, shell = True)  
-        os.system(exec_cmd + " &")
+        # exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"{self.cmd}\""
+        # process = subprocess.Popen(exec_cmd, shell = True)
+        exec_cmd = f"ssh {self.master_user}@{self.master_ip} \"{self.cmd}\""  
+        ret = subprocess.getstatusoutput(exec_cmd)
+        # os.system(exec_cmd + " &")
         print(f"[INFO] exec {self.cmd} send")
 
-        while True:
-            time.sleep(10)
-            print(f"[INFO] {time.localtime()} check")
-            exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"cat /root/exp2/MergeCDC/result_flag.out\""
-            ret = subprocess.getstatusoutput(exec_cmd)
-            if ret[1] == "1":
-                print(f"[INFO] exec {exec_cmd} finish")
-                break
-            elif ret[1] != "0":
-                print(f"[ERROR] undefine flag: {ret[1]}")
+        # while True:
+        #     time.sleep(10)
+        #     print(f"[INFO] {time.localtime()} check")
+        #     exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"cat /root/exp2/MergeCDC/result_flag.out\""
+        #     ret = subprocess.getstatusoutput(exec_cmd)
+        #     if ret[1] == "1":
+        #         print(f"[INFO] exec {exec_cmd} finish")
+        #         break
+        #     elif ret[1] != "0":
+        #         print(f"[ERROR] undefine flag: {ret[1]}")
 
-        exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"cat /root/exp2/MergeCDC/result.out\""
-        ret = subprocess.getstatusoutput(exec_cmd)
+        # exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"cat /root/exp2/MergeCDC/result.out\""
+        # ret = subprocess.getstatusoutput(exec_cmd)
         print(f"[INFO] exec result: {ret}")
         self.result_signal.emit(ret[1])      
         self.finished.emit()
@@ -60,7 +62,7 @@ class Worker(QThread):
 
         # try:
         #     print(f"[INFO] exec {self.cmd} start")
-        #     exec_cmd = f"sshpass -p {self.master_passwd} ssh {self.master_user}@{self.master_ip} \"{self.cmd}\"" 
+        #     exec_cmd = f"ssh {self.master_user}@{self.master_ip} \"{self.cmd}\"" 
         #     process = subprocess.Popen(exec_cmd, shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         #     def enqueue_output(pipe, q):
@@ -944,7 +946,9 @@ class Ui_Form(object):
         QApplication.processEvents()
         print("[INFO] run TeraSort and CodedTeraSort start")
 
-        worker = Worker(master_ip, username, passwd, f"bash {root}/script/run_1_terasort.sh")
+        # worker = Worker(master_ip, username, passwd, f"bash {root}/script/run_1_terasort.sh")
+        worker = Worker(master_ip, username, passwd, f"bash {root}/script/run_8_terasort.sh")
+        worker = Worker(master_ip, username, passwd, f"bash {root}/script/run_8_codedterasort.sh")
         # worker = Worker(master_ip, username, passwd, f"bash {root}/script/helloworld.sh")
         worker.start()
         worker.finished.connect(lambda: self.cleanup_thread(worker))
