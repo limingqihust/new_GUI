@@ -959,6 +959,13 @@ class Ui_Form(object):
         QApplication.processEvents()
         print("[INFO] modify bandwidth config done")
 
+        # update bandwidth ratio
+        ret = self.exec(master_ip, username, passwd, f"python3 {root}/script/update_bandwidth.py")
+        print(ret)
+        self.textEdit_8.append("[INFO] modify bandwidth ratio done")
+        QApplication.processEvents()
+        print("[INFO] modify bandwidth ratio done")
+        
         # run TeraSort and CodedTeraSort
         self.textEdit_8.append("[INFO] run TeraSort and CodedTeraSort start")
         QApplication.processEvents()
