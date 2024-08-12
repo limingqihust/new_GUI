@@ -1,0 +1,20 @@
+{
+    "coder_type": "RS",
+    "rep_num": 3,
+    "server_num": 3,
+    "input_num": 6,
+    "any_ip": "0.0.0.0",
+    "local_ip": "192.168.3.15",
+    "master_ip": "192.168.3.15",
+    "worker_ips": [
+        "192.168.3.16",
+        "192.168.3.18",
+        "192.168.3.19"
+    ],
+    "server_port": "15671",
+    "client_port": "15672",
+    "mcast_ip": "224.0.0.2",
+    "mcast_port": "6571",
+    "fail_rate": 0,
+    "ec_k": 0
+}

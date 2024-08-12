@@ -1,0 +1,19 @@
+{
+    "one_number": 1500,
+    "td": 1,
+    "k": 6,
+    "bacth_size": 150,
+    "coder_type": "C2",
+    "server_num": 3,
+    "master_ip": "192.168.3.15",
+    "worker_ips": [
+        "192.168.3.16",
+        "192.168.3.18",
+        "192.168.3.19"
+    ],
+    "master_port": "12345",
+    "worker_port": "12346",
+    "any_ip": "0.0.0.0",
+    "mcast_ip": "224.1.1.1",
+    "mcast_port": "8623"
+}
