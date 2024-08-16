@@ -279,6 +279,7 @@ class Ui_Form(object):
         self.lineEdit_28 = QtWidgets.QLineEdit(self.tab_11)
         self.lineEdit_28.setGeometry(QtCore.QRect(160, 150, 451, 25))
         self.lineEdit_28.setObjectName("lineEdit_28")
+        self.lineEdit_28.setEchoMode(QtWidgets.QLineEdit.Password)
         
         self.toolButton_7 = QtWidgets.QToolButton(self.tab_11)
         self.toolButton_7.setGeometry(QtCore.QRect(640, 30, 26, 24))
@@ -324,6 +325,8 @@ class Ui_Form(object):
         self.lineEdit_31 = QtWidgets.QLineEdit(self.tab_12)
         self.lineEdit_31.setGeometry(QtCore.QRect(160, 150, 451, 25))
         self.lineEdit_31.setObjectName("lineEdit_31")
+        self.lineEdit_31.setEchoMode(QtWidgets.QLineEdit.Password)
+
         
         self.lineEdit_32 = QtWidgets.QLineEdit(self.tab_12)
         self.lineEdit_32.setGeometry(QtCore.QRect(160, 110, 451, 25))
@@ -373,6 +376,7 @@ class Ui_Form(object):
         self.lineEdit_35 = QtWidgets.QLineEdit(self.tab_13)
         self.lineEdit_35.setGeometry(QtCore.QRect(160, 150, 451, 25))
         self.lineEdit_35.setObjectName("lineEdit_35")
+        self.lineEdit_35.setEchoMode(QtWidgets.QLineEdit.Password)
         
         self.lineEdit_36 = QtWidgets.QLineEdit(self.tab_13)
         self.lineEdit_36.setGeometry(QtCore.QRect(160, 110, 451, 25))
