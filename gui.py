@@ -77,7 +77,7 @@ class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(811, 597)
-        
+        self.Form = Form
         self.tabWidget = QtWidgets.QTabWidget(Form)
         self.tabWidget.setGeometry(QtCore.QRect(10, 20, 791, 571))
         self.tabWidget.setObjectName("tabWidget")
@@ -722,6 +722,9 @@ class Ui_Form(object):
         self.pushButton_8.clicked.connect(self.run_lmq_exp2)
         self.pushButton_9.clicked.connect(self.run_lmq_exp3)
         self.exp2_text = ""
+        self.toolButton_7.clicked.connect(partial(self.selectSingleFile, self.lineEdit_25))
+        self.toolButton_8.clicked.connect(partial(self.selectSingleFile, self.lineEdit_29))
+        self.toolButton_9.clicked.connect(partial(self.selectSingleFile, self.lineEdit_33))
 # --------------------------------------- -------------------------------------
 
     def retranslateUi(self, Form):
@@ -830,7 +833,8 @@ class Ui_Form(object):
     
     def scp_lmq(self, master_ip, master_user, master_passwd, file, dst):
         if master_user == "root":
-            scp_cmd = "sshpass -p " + master_passwd + " scp " + file + " " + master_user + "@" + master_ip + ":" + dst
+            # scp_cmd = "sshpass -p " + master_passwd + " scp " + file + " " + master_user + "@" + master_ip + ":" + dst
+            scp_cmd = "scp " + file + " " + master_user + "@" + master_ip + ":" + dst
         else:
             scp_cmd = "sshpass -p " + master_passwd + " scp " + file + " " + master_user + "@" + master_ip + ":" + dst
     
@@ -842,7 +846,8 @@ class Ui_Form(object):
         return subprocess.getstatusoutput(ssh_cmd + cmd)
     
     def exec_lmq(self, master_ip, master_user, master_passwd, cmd):
-        exec_cmd = f"sshpass -p {master_passwd} ssh {master_user}@{master_ip} \"{cmd}\""
+        exec_cmd = f"ssh {master_user}@{master_ip} \"{cmd}\""
+        # exec_cmd = f"sshpass -p {master_passwd} ssh {master_user}@{master_ip} \"{cmd}\""
         return subprocess.getstatusoutput(exec_cmd)
 
     def display_result(self, output, textEdit):
