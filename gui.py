@@ -946,7 +946,7 @@ class Ui_Form(object):
             distribution = conf["file_distribution"]
             combination = conf["node_combination"]
         # copy config file to master node
-        self.scp_lmq(master_ip, username, passwd, filename, f"{root}/config/")
+        self.scp_lmq(master_ip, username, passwd, filename, f"{root}/config/exp2.json")
         self.scp_lmq(master_ip, username, passwd, distribution, f"{root}/Distribution/")
         self.scp_lmq(master_ip, username, passwd, combination, f"{root}/Distribution/")
         self.textEdit_8.append("[INFO] copy config file to master node done")
